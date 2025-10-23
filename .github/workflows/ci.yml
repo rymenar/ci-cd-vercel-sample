@@ -30,9 +30,10 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
+      - run: corepack enable
+
       # 3. Installs project dependencies
       - name: Install dependencies
-        run: corepack enable
         run: pnpm install --frozen-lockfile
 
       # 4. Runs ESLint to check for code quality issues
