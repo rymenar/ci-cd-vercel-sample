@@ -1,0 +1,61 @@
+name: CI
+
+# Controls when the workflow will run
+on:
+  pull_request:
+    branches: [main] # Runs on pull requests targeting the main branch
+  push:
+    branches: [main] # Runs on pushes to the main branch
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build-and-test:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      pull-requests: write
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # 1. Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      # 2. Sets up Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      # 3. Installs project dependencies
+      - name: Install dependencies
+        run: corepack enable
+        run: pnpm install --frozen-lockfile
+
+      # 4. Runs ESLint to check for code quality issues
+      - name: Run linter
+        run: pnpm lint
+
+      # 5. Runs Jest tests
+      - name: Run tests
+        run: pnpm test:ci
+
+      # 6. (Optional but good practice) Runs the build command to ensure the app builds successfully
+      - name: Build project
+        run: pnpm build
+
+      # 7. Upload test results and coverage reports
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-lcov
+          path: coverage/lcov.info
+
+      # 8. Summarize the CI results
+      - name: Summarize
+        run: |
+          echo "## CI summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Lint, tests, and build passed." >> $GITHUB_STEP_SUMMARY
